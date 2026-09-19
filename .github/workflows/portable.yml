@@ -5,6 +5,10 @@ on:
   pull_request:
     paths:
       - ".github/workflows/portable.yml"
+      - "scripts/fetch-ffmpeg.ps1"
+      - "scripts/build-voicestudio-runtime.ps1"
+      - "scripts/package-portable.ps1"
+      - "runtime/voicestudio/version.json"
   push:
     tags: ["v*"]
 
