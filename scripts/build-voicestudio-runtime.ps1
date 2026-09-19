@@ -45,8 +45,31 @@ if (-not $VersionLine -or $VersionLine.Matches[0].Groups[1].Value -ne $ExpectedV
 Push-Location $SourceDir
 try {
   uv sync --frozen --no-dev
-  uv run pyinstaller backend.spec --noconfirm --clean
+
+  if ($IsWindows) {
+    # VoiceStudio upstream selects CUDA 12.8 PyTorch wheels on Windows.
+    # Tool Recap requires RTX for video rendering, not VoiceStudio inference.
+    # Replace only the pinned torch trio with official CPU wheels to avoid
+    # shipping several gigabytes of duplicate CUDA runtime.
+    $env:UV_NO_CONFIG = "1"
+    uv pip uninstall --python .venv torch torchaudio torchvision
+    uv pip install --python .venv --index-url https://download.pytorch.org/whl/cpu "torch==2.8.0+cpu" "torchaudio==2.8.0+cpu" "torchvision==0.23.0+cpu"
+    if ($LASTEXITCODE -ne 0) {
+      throw "Failed to install the pinned CPU PyTorch runtime"
+    }
+    & ".venv\Scripts\python.exe" -c "import torch, torchaudio, torchvision; assert not torch.cuda.is_available(); print('Tool Recap VoiceStudio torch runtime:', torch.__version__)"
+    if ($LASTEXITCODE -ne 0) {
+      throw "Pinned VoiceStudio CPU torch runtime validation failed"
+    }
+    Remove-Item Env:UV_NO_CONFIG -ErrorAction SilentlyContinue
+  }
+
+  & ".venv\Scripts\python.exe" -m PyInstaller backend.spec --noconfirm --clean
+  if ($LASTEXITCODE -ne 0) {
+    throw "PyInstaller failed"
+  }
 } finally {
+  Remove-Item Env:UV_NO_CONFIG -ErrorAction SilentlyContinue
   Pop-Location
 }
 
