@@ -1,5 +1,4 @@
 use std::{
-    ffi::OsStr,
     fs,
     io::Read,
     path::{Path, PathBuf},
