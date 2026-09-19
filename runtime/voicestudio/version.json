@@ -1,0 +1,6 @@
+{
+  "upstream": "https://github.com/debpalash/VoiceStudio",
+  "version": "0.5.3",
+  "source_ref": "v0.5.3",
+  "api_contract": "system-info + openai-audio-v1 + models-install-status-v0.5.3"
+}
