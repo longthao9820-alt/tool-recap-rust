@@ -88,8 +88,29 @@ jobs:
       - name: Create portable ZIP and checksum
         shell: pwsh
         run: |
-          $zip = "dist/tool-recap-rust-windows-portable.zip"
-          Compress-Archive -Path "dist/Tool-Recap-Rust/*" -DestinationPath $zip -CompressionLevel Optimal -Force
+          $dist = (Resolve-Path "dist").Path
+          $source = Join-Path $dist "Tool-Recap-Rust"
+          $zip = Join-Path $dist "tool-recap-rust-windows-portable.zip"
+          Remove-Item $zip -Force -ErrorAction SilentlyContinue
+
+          $sevenZip = (Get-Command 7z.exe -ErrorAction Stop).Source
+          Push-Location $source
+          try {
+            & $sevenZip a -tzip $zip ".\*" -mx=5 -mmt=on
+            if ($LASTEXITCODE -ne 0) {
+              throw "7-Zip failed with exit code $LASTEXITCODE"
+            }
+          } finally {
+            Pop-Location
+          }
+
+          $size = (Get-Item $zip).Length
+          $sizeGiB = [math]::Round($size / 1GB, 3)
+          Write-Host "Portable ZIP size: $size bytes ($sizeGiB GiB)"
+          if ($size -ge 2GB) {
+            throw "Portable ZIP is $sizeGiB GiB; GitHub Release assets must be under 2 GiB."
+          }
+
           $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash  tool-recap-rust-windows-portable.zip" | Set-Content "$zip.sha256" -Encoding ascii
       - name: Upload verified portable artifact
