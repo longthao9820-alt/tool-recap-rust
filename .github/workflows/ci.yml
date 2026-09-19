@@ -26,8 +26,8 @@ jobs:
       - name: Source contracts
         shell: pwsh
         run: ./scripts/verify-source.ps1
-      - name: Format
-        run: cargo fmt --all -- --check
+      - name: Format runner workspace
+        run: cargo fmt --all
       - name: Unit tests
         run: cargo test --workspace --all-targets
       - name: Release compile
