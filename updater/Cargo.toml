@@ -1,0 +1,9 @@
+[package]
+name = "tool-recap-updater"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+license = "AGPL-3.0-only"
+
+[dependencies]
+anyhow = "1.0"
