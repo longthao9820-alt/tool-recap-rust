@@ -1,0 +1,82 @@
+name: Portable Windows build
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  CARGO_TERM_COLOR: always
+
+jobs:
+  portable:
+    name: Build verified portable folder
+    runs-on: windows-2022
+    timeout-minutes: 180
+    steps:
+      - name: Checkout Tool Recap Rust
+        uses: actions/checkout@v4
+      - name: Rust 1.95.0
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.95.0
+      - name: Python 3.12 for VoiceStudio build
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned uv build tool
+        run: python -m pip install "uv==0.12.13"
+      - name: Checkout reviewed VoiceStudio release
+        uses: actions/checkout@v4
+        with:
+          repository: debpalash/VoiceStudio
+          ref: v0.5.3
+          path: vendor/VoiceStudio
+          fetch-depth: 1
+      - name: Build Rust release binaries
+        run: cargo build --workspace --release
+      - name: Fetch pinned FFmpeg runtime
+        shell: pwsh
+        run: ./scripts/fetch-ffmpeg.ps1
+      - name: Build and smoke VoiceStudio v0.5.3 runtime
+        shell: pwsh
+        run: ./scripts/build-voicestudio-runtime.ps1 -SourceDir vendor/VoiceStudio
+      - name: Preserve VoiceStudio licensing
+        shell: pwsh
+        run: |
+          Copy-Item vendor/VoiceStudio/LICENSE runtime/voicestudio/LICENSE -Force
+          Copy-Item vendor/VoiceStudio/LICENSE-NOTICE.md runtime/voicestudio/LICENSE-NOTICE.md -Force
+          Copy-Item vendor/VoiceStudio/LICENSE LICENSE -Force
+      - name: Package and self-check portable folder
+        shell: pwsh
+        run: ./scripts/package-portable.ps1
+      - name: Create portable ZIP and checksum
+        shell: pwsh
+        run: |
+          $zip = "dist/tool-recap-rust-windows-portable.zip"
+          Compress-Archive -Path "dist/Tool-Recap-Rust/*" -DestinationPath $zip -CompressionLevel Optimal -Force
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  tool-recap-rust-windows-portable.zip" | Set-Content "$zip.sha256" -Encoding ascii
+      - name: Upload verified portable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tool-recap-rust-windows-portable
+          path: |
+            dist/tool-recap-rust-windows-portable.zip
+            dist/tool-recap-rust-windows-portable.zip.sha256
+          if-no-files-found: error
+          retention-days: 14
+      - name: Publish GitHub Release assets
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ github.ref_name }}"
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -ne 0) { gh release create $tag --title $tag --generate-notes }
+          gh release upload $tag dist/tool-recap-rust-windows-portable.zip dist/tool-recap-rust-windows-portable.zip.sha256 --clobber
