@@ -10,7 +10,6 @@ foreach ($Name in @("tool-recap-rust.exe","tool-recap-updater.exe")) {
   if (-not (Test-Path $Source)) { throw "Missing $Name" }
   Copy-Item $Source $Out -Force
 }
-Copy-Item "assets/tool-recap.ico" $Out -Force
 Copy-Item "README.md" $Out -Force
 if (Test-Path "LICENSE") { Copy-Item "LICENSE" $Out -Force }
 Copy-Item "LICENSE-NOTICE.md" $Out -Force
