@@ -16,6 +16,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: portable-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   CARGO_TERM_COLOR: always
@@ -55,7 +59,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: runtime/voicestudio/backend
-          key: voicestudio-v0.5.3-${{ runner.os }}-${{ hashFiles('vendor/VoiceStudio/uv.lock', 'vendor/VoiceStudio/backend.spec') }}
+          key: voicestudio-v0.5.3-stripfix1-${{ runner.os }}-${{ hashFiles('vendor/VoiceStudio/uv.lock', 'vendor/VoiceStudio/backend.spec', 'scripts/build-voicestudio-runtime.ps1') }}
 
       - name: Build VoiceStudio v0.5.3 runtime
         if: steps.voicestudio-cache.outputs.cache-hit != 'true'
@@ -67,7 +71,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: runtime/voicestudio/backend
-          key: voicestudio-v0.5.3-${{ runner.os }}-${{ hashFiles('vendor/VoiceStudio/uv.lock', 'vendor/VoiceStudio/backend.spec') }}
+          key: voicestudio-v0.5.3-stripfix1-${{ runner.os }}-${{ hashFiles('vendor/VoiceStudio/uv.lock', 'vendor/VoiceStudio/backend.spec', 'scripts/build-voicestudio-runtime.ps1') }}
 
       - name: Smoke VoiceStudio v0.5.3 runtime
         shell: pwsh
