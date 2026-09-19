@@ -29,7 +29,7 @@ The managed local runtime uses:
 - `/models/install` and `/models/install/status` for first-use model installation progress
 - `/engines/select` to select the installed Faster Whisper ASR model
 
-The portable build freezes VoiceStudio into a self-contained Windows backend. Users do not install Python, packages, or VoiceStudio. Large model weights are deliberately excluded from the initial package, download on first use into `data/models`, and are reused later.
+The portable build freezes VoiceStudio into a self-contained Windows backend. Users do not install Python, packages, or VoiceStudio. To keep the verified portable release within GitHub Releases' single-asset limit, the bundled VoiceStudio runtime uses the official CPU builds of its pinned PyTorch 2.8 stack; this does not replace VoiceStudio or change its API/model system. NVIDIA RTX remains mandatory for the FFmpeg video-render pipeline. Large model weights are deliberately excluded from the initial package, download on first use into `data/models`, and are reused later.
 
 A future VoiceStudio pin must pass the portable workflow's boot/API contract smoke test before publication. Failed or incompatible upgrades therefore do not replace the last working release.
 
