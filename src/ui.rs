@@ -524,7 +524,7 @@ fn configure_style(ctx: &egui::Context) {
     visuals.selection.bg_fill = Color32::from_rgb(24, 78, 112);
     visuals.selection.stroke = Stroke::new(1.0, ACCENT);
     ctx.set_visuals(visuals);
-    ctx.style_mut(|style| {
+    ctx.style_mut_of(egui::Theme::Dark, |style| {
         style.spacing.item_spacing = egui::vec2(8.0, 7.0);
         style.spacing.button_padding = egui::vec2(12.0, 7.0);
         style.spacing.interact_size.y = 34.0;
