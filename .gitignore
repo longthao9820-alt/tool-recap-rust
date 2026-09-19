@@ -1,0 +1,12 @@
+/target/
+/data/
+/runtime/ffmpeg/
+/runtime/voicestudio/backend/
+/runtime/voicestudio/staging/
+*.partial
+*.log
+*.wav
+*.mp4
+!assets/*.png
+!assets/*.ico
+.DS_Store

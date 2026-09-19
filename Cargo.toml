@@ -1,0 +1,38 @@
+[package]
+name = "tool-recap-rust"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+license = "AGPL-3.0-only"
+repository = "https://github.com/longthao9820-alt/tool-recap-rust"
+build = "build.rs"
+
+[workspace]
+members = ["updater"]
+resolver = "2"
+
+[dependencies]
+anyhow = "1.0"
+base64 = "0.22"
+eframe = { version = "0.36.2", default-features = false, features = ["accesskit", "default_fonts", "glow", "persistence"] }
+rfd = "0.17.2"
+reqwest = { version = "0.13.5", default-features = false, features = ["blocking", "json", "multipart", "rustls"] }
+semver = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+
+[target.'cfg(windows)'.dependencies]
+tauri-winrt-notification = "0.8.1"
+
+[build-dependencies]
+base64 = "0.22"
+winres = "0.1"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+
+[dev-dependencies]
+tempfile = "3.23"

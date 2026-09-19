@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust:
+    name: Rust checks
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rust 1.95.0
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.95.0
+          components: rustfmt
+      - name: Source contracts
+        shell: pwsh
+        run: ./scripts/verify-source.ps1
+      - name: Format runner workspace
+        run: cargo fmt --all
+      - name: Unit tests
+        run: cargo test --workspace --all-targets
+      - name: Release compile
+        run: cargo build --workspace --release
