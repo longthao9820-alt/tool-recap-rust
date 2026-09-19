@@ -24,8 +24,18 @@ if ($IsWindows) {
     throw "VoiceStudio v$ExpectedVersion backend.spec strip contract changed (expected 2 strip=True entries, found $Matches)"
   }
   $SpecText = [regex]::Replace($SpecText, '(?m)^(\s*)strip=True,', '$1strip=False,')
+
+  $OptimizeMatches = [regex]::Matches($SpecText, '(?m)^\s*optimize=2,').Count
+  if ($OptimizeMatches -ne 1) {
+    throw "VoiceStudio v$ExpectedVersion backend.spec optimize contract changed (expected 1 optimize=2 entry, found $OptimizeMatches)"
+  }
+  # -OO removes docstrings. NumPy's frozen startup calls add_docstring() while
+  # importing its C API and requires those strings; on Windows this otherwise
+  # fails in pyi_rth_numpy_compat before VoiceStudio can start.
+  $SpecText = [regex]::Replace($SpecText, '(?m)^(\s*)optimize=2,', '$1optimize=1,')
+
   Set-Content -Path $Spec -Value $SpecText -Encoding UTF8
-  Write-Host "Windows compatibility override: disabled PyInstaller binary stripping"
+  Write-Host "Windows compatibility override: disabled binary stripping and preserved runtime docstrings"
 }
 $VersionLine = Select-String -Path $PyProject -Pattern '^version\s*=\s*"([^"]+)"' | Select-Object -First 1
 if (-not $VersionLine -or $VersionLine.Matches[0].Groups[1].Value -ne $ExpectedVersion) {
